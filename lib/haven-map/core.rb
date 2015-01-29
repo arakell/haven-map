@@ -237,7 +237,8 @@ class Core
 				:tile_size => 100,
 				:offset => @merger_offset + @merging_offset * BASE_TILE_SIZE,
 				:show_source => false,
-				:show_grid => true
+				:show_grid => true,
+				:alpha => 0.8
 		end
 	end
 
