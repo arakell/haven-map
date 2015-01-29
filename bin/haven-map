@@ -1,0 +1,5 @@
+#!/usr/bin/ruby
+#encoding: utf-8
+
+require 'haven-map/core'
+HavenMap::Core.new
