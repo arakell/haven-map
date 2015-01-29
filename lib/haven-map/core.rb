@@ -19,6 +19,7 @@ require 'awesome_print'
 require 'haven-map/utils'
 require 'haven-map/coords'
 require 'haven-map/tile'
+require 'haven-map/map'
 
 BASE_TILE_SIZE = 100
 DEFAULT_ZOOM = 0
@@ -54,15 +55,16 @@ class Core
 
 		@path = '/home/qba/.local/haven/map'
 
-		@tiles = {}
+		@tiles = HavenMap::Map.new
 		@maps = {}
+		@merged = HavenMap::Map.new
+		@unmerged = []
 
 		@zoom_level = DEFAULT_ZOOM
 		@tile_size = BASE_TILE_SIZE
 		@offset = Coords.new(BASE_TILE_SIZE / 2, BASE_TILE_SIZE / 2)
 
 		read_maps
-		merge_maps
 
 		@mode = :normal
 
@@ -100,79 +102,26 @@ class Core
 	def read_maps
 		basedir = Pathname.new(@path)
 		Dir.entries(basedir).select(){|i| i[0] != '.' and Dir.exists? basedir + i }.sort.each do |i|
-			map = read_map basedir, i
+			map = HavenMap::Map.new basedir, i
 			@maps[i] = map
-			if !@merged
-				@merged = map.clone
-			else
-				offsetFile = basedir + i + 'offset'
-				if offsetFile.exist?
-					x, y = offsetFile.readlines[0].split(/,/).map{|s| s.to_i}
-					map.each do |coords, tile|
-						newcoords = coords + Coords.new(x, y)
-						@merged[newcoords] = tile
-					end
+
+			if map.offset
+				map.each do |coords, tile|
+					@merged[coords + map.offset] = tile
 				end
+			else
+				@unmerged.push map
 			end
 		end
-	end
-
-	def read_map root, map
-		mapdir = root + map
-		# TODO offsets and multiple dirs
-		tiles = {}
-		Dir.entries(mapdir).each do |item|
-			/^tile_(?<x>[0-9-]*)_(?<y>[0-9-]*)\.png$/ =~ item or next
-			#tiles["#{x}|#{y}"] = HavenMap::Tile.new x, y, mapdir + item
-			tiles[Coords::new(x,y)] = HavenMap::Tile.new :x => x, :y => y,
-				:filename => mapdir + item,
-				:map => map
-		end
-
-		tiles
-	end
-
-	def merge_maps
-		basedir = Pathname.new(@path)
-		
 	end
 
 	def map_draw widget, cairo
-		size = @map.allocation
-
-		# TODO draw only visible tiles (is this even necessary?)
-		offset = Coords.new(size.width / 2, size.height / 2)
-		@tiles.each do |coords, tile|
-			#tile_offset = offset + tile.coords * @tile_size + @offset
-			tile_offset = offset + coords * @tile_size + @offset
-
-			next if tile_offset.x + @tile_size < 0 or tile_offset.y + @tile_size < 0
-			next if tile_offset.x > size.width or tile_offset.y > size.height
-
-			cairo.set_source_pixbuf tile.pixbuf(@tile_size), tile_offset.x, tile_offset.y
-			cairo.paint
-
-			date, time = tile.map.split(/ /, 2)
-
-			if @show_source and @zoom_level >= 0 then
-				cairo.set_source_rgb 1, 1, 1
-				cairo.select_font_face "Sans", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL
-				cairo.set_font_size 10
-				cairo.move_to tile_offset.x, tile_offset.y + 10
-				cairo.show_text date
-				cairo.move_to tile_offset.x, tile_offset.y + 20
-				cairo.show_text time
-			end
-
-			if @show_grid then
-				cairo.set_source_rgba 1, 0, 0, 0.5
-				cairo.move_to tile_offset.x + @tile_size - 1, tile_offset.y
-				cairo.line_to tile_offset.x, tile_offset.y
-				cairo.line_to tile_offset.x, tile_offset.y + @tile_size - 1
-				cairo.stroke
-			end
-		end
-
+		@tiles.draw :target => @map,
+			:cairo => cairo,
+			:tile_size => @tile_size,
+			:offset => @offset,
+			:show_source => (@show_source and @zoom_level >= 0),
+			:show_grid => @show_grid
 	end
 
 	def zoom level, center = Coords.new(0,0)
@@ -243,7 +192,7 @@ class Core
 
 	def select_map widget
 		if !widget.selected
-			@tiles = {}
+			@tiles = HavenMap::Map.new
 		elsif widget.selected[0] == 'merged'
 			@tiles = @merged
 		else
@@ -258,6 +207,38 @@ class Core
 	end
 
 	def tile_to_coords
+	end
+
+	def merger_start
+		merger_next
+		@builder.get_object('merger').show
+	end
+
+	def merger_next
+		if !@unmerged.empty? then
+			@merging = @unmerged.shift
+			@merger_offset = HavenMap::Coords.new
+			@merging_offset = HavenMap::Coords.new
+		end
+	end
+
+	def merger_draw widget, cairo
+		@merger_map = @builder.get_object('merger-map')
+		@merged.draw :target => @merger_map,
+			:cairo => cairo,
+			:tile_size => BASE_TILE_SIZE,
+			:offset => @merger_offset,
+			:show_source => false,
+			:show_grid => true,
+			:background => true
+		if @merging then
+			@merging.draw :target => @merger_map,
+				:cairo => cairo,
+				:tile_size => 100,
+				:offset => @merger_offset + @merging_offset * BASE_TILE_SIZE,
+				:show_source => false,
+				:show_grid => true
+		end
 	end
 
 end # class Core
