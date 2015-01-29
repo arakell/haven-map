@@ -3,18 +3,21 @@ require 'haven-map/coords'
 module HavenMap
 
 class Tile
-	attr_reader :x, :y, :coords, :filename
+	attr_reader :map, :coords, :filename
 
-	def initialize x, y, filename
-		@x = x.to_i
-		@y = y.to_i
-		@coords = Coords.new @x, @y
-		@filename = filename
+	def initialize args
+		@coords = Coords.new args[:x].to_i, args[:y].to_i
+		@filename = args[:filename]
+		@map = args[:map]
+		@pixbuf = {}
 	end
 
-	def pixbuf
-		return @pixbuf if @pixbuf
-		@pixbuf = Gdk::Pixbuf.new @filename.to_s
+	def pixbuf size = 100
+		return @pixbuf[size] if @pixbuf[size]
+
+		@pixbuf[size] = (size == 100) ?
+			Gdk::Pixbuf.new(@filename.to_s) :
+			self.pixbuf.scale(size, size)
 	end
 
 	def surface

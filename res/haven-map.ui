@@ -15,6 +15,68 @@
         <property name="label" translatable="yes">Merge maps</property>
         <property name="short_label" translatable="yes">Merge</property>
         <property name="stock_id">gtk-convert</property>
+        <property name="sensitive">False</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="zoom-in">
+        <property name="label" translatable="yes">Zoom in</property>
+        <property name="short_label" translatable="yes">Zoom in</property>
+        <property name="stock_id">gtk-zoom-in</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="zoom out">
+        <property name="label" translatable="yes">Zoom out</property>
+        <property name="short_label" translatable="yes">Zoom out</property>
+        <property name="stock_id">gtk-zoom-out</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="zoom-normal">
+        <property name="label" translatable="yes">Zoom to 100%</property>
+        <property name="short_label" translatable="yes">Zoom to 100%</property>
+        <property name="stock_id">gtk-zoom-100</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="marker-add">
+        <property name="stock_id">gtk-add</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="marker-remove">
+        <property name="stock_id">gtk-remove</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="marker-jump">
+        <property name="stock_id">gtk-jump-to</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="marker-edit">
+        <property name="stock_id">gtk-edit</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToggleAction" id="labels-toggle">
+        <property name="stock_id">gtk-info</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToggleAction" id="markers-toggle">
+        <property name="stock_id">gtk-color-picker</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToggleAction" id="marker-list">
+        <property name="stock_id">gtk-index</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToggleAction" id="map-list">
+        <property name="stock_id">gtk-index</property>
       </object>
     </child>
   </object>
@@ -222,6 +284,7 @@
         </child>
         <child>
           <object class="GtkToolbar" id="toolbar1">
+            <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
               <object class="GtkToolButton" id="toolbutton1">
@@ -231,6 +294,61 @@
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">toolbutton1</property>
                 <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton4">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="toolbutton3">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">zoom out</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton3</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="zoom_out" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="toolbutton2">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">zoom-in</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton2</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="zoom_in" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="toolbutton5">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">zoom-normal</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton5</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="zoom_normal" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
