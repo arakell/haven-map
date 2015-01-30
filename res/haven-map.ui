@@ -61,11 +61,15 @@
     </child>
     <child>
       <object class="GtkToggleAction" id="labels-toggle">
+        <property name="label" translatable="yes">Display labels</property>
+        <property name="short_label" translatable="yes">Display labels</property>
         <property name="stock_id">gtk-info</property>
       </object>
     </child>
     <child>
       <object class="GtkToggleAction" id="markers-toggle">
+        <property name="label" translatable="yes">Display markers</property>
+        <property name="short_label" translatable="yes">Display markers</property>
         <property name="stock_id">gtk-color-picker</property>
       </object>
     </child>
@@ -77,6 +81,12 @@
     <child>
       <object class="GtkToggleAction" id="map-list">
         <property name="stock_id">gtk-index</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkToggleAction" id="grid-toggle">
+        <property name="label" translatable="yes">Display grid</property>
+        <property name="short_label" translatable="yes">Display grid</property>
       </object>
     </child>
   </object>
@@ -196,7 +206,6 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem2">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Edit</property>
                 <property name="use_underline">True</property>
@@ -250,6 +259,42 @@
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="menu4">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="checkmenuitem1">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">labels-toggle</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">checkmenuitem1</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="menuitem5">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">markers-toggle</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">menuitem5</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="checkmenuitem2">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">grid-toggle</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">checkmenuitem2</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
@@ -416,11 +461,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
-                    <signal name="button-press-event" handler="map_drag_start" swapped="no"/>
-                    <signal name="button-release-event" handler="map_drag_stop" swapped="no"/>
-                    <signal name="draw" handler="map_draw" swapped="no"/>
-                    <signal name="motion-notify-event" handler="map_drag" swapped="no"/>
-                    <signal name="scroll-event" handler="map_scroll" swapped="no"/>
                   </object>
                 </child>
               </object>
@@ -443,21 +483,26 @@
     <child>
       <object class="GtkAction" id="merger-merge">
         <property name="stock_id">gtk-apply</property>
+        <signal name="activate" handler="merger_confirm" swapped="no"/>
       </object>
     </child>
     <child>
       <object class="GtkAction" id="merger-skip">
-        <property name="stock_id">gtk-go-forward</property>
+        <property name="stock_id">gtk-no</property>
+        <signal name="activate" handler="merger_skip" swapped="no"/>
       </object>
     </child>
     <child>
       <object class="GtkAction" id="merger-quit">
         <property name="stock_id">gtk-quit</property>
+        <signal name="activate" handler="merger_close" swapped="no"/>
       </object>
     </child>
   </object>
   <object class="GtkWindow" id="merger">
     <property name="can_focus">False</property>
+    <property name="type_hint">dialog</property>
+    <signal name="delete-event" handler="merger_close" swapped="no"/>
     <child>
       <object class="GtkBox" id="box2">
         <property name="visible">True</property>
@@ -474,9 +519,11 @@
                 <property name="vexpand">True</property>
                 <child>
                   <object class="GtkDrawingArea" id="merger-map">
+                    <property name="width_request">400</property>
+                    <property name="height_request">300</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <signal name="draw" handler="merger_draw" swapped="no"/>
+                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
                   </object>
                 </child>
               </object>
@@ -486,10 +533,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="merger-left">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="merger_left" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image1">
                     <property name="visible">True</property>
@@ -504,10 +552,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button2">
+              <object class="GtkButton" id="merger-right">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="merger_right" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image2">
                     <property name="visible">True</property>
@@ -522,28 +571,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button3">
+              <object class="GtkButton" id="merger-down">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <child>
-                  <object class="GtkImage" id="image3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="stock">gtk-go-up</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button4">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
+                <signal name="clicked" handler="merger_down" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="image4">
                     <property name="visible">True</property>
@@ -555,6 +587,25 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="merger-up">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="merger_up" swapped="no"/>
+                <child>
+                  <object class="GtkImage" id="image3">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="stock">gtk-go-up</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
               </packing>
             </child>
             <child>

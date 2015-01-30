@@ -1,12 +1,12 @@
 # encoding: utf-8
 
 # this stays until alpha development is done
-def timer label, opts = {}
-	puts "#{label} start" if opts[:showstart]
-	time_start = Time.now
-	yield
-	puts "#{label} time: #{Time.now - time_start}s"
-end
+#def timer label, opts = {}
+	#puts "#{label} start" if opts[:showstart]
+	#time_start = Time.now
+	#yield
+	#puts "#{label} time: #{Time.now - time_start}s"
+#end
 
 module HavenMap
 

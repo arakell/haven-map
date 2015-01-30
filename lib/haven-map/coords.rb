@@ -39,8 +39,16 @@ class Coords
 		Coords.new @x / b, @y / b
 	end
 
+	def fdiv b
+		Coords.new @x.to_f / b, @y.to_f / b
+	end
+
+	def rdiv b
+		Coords.new((@x.to_f / b).round.to_i, (@y.to_f / b).round.to_i)
+	end
+
 	def to_s
-		"#{@x}×#{@y}"
+		"#{@x},#{@y}"
 	end
 end # class Coords
 

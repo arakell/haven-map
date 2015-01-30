@@ -12,6 +12,11 @@ class Map < Hash
 		read root, name if root and name
 	end
 
+	def write_offset! offset
+		@offset = offset
+		File.open(@offset_file, 'w') {|f| f.write(@offset) }
+	end
+
 	def read root, name
 		mapdir = root + name
 		@offset_file = mapdir + 'offset'
@@ -30,10 +35,9 @@ class Map < Hash
 	end
 
 	def draw args
-		ap Cairo::Context.instance_methods
-
 		size = args[:target].allocation
-		cairo = args[:cairo]
+		#cairo = args[:cairo]
+		cairo = args[:target].window.create_cairo_context
 		tile_size = args[:tile_size]
 
 		offset = Coords.new(size.width / 2, size.height / 2)
@@ -45,20 +49,15 @@ class Map < Hash
 
 			pixbuf = tile.pixbuf(tile_size)
 			if args[:background] then
-				pixbuf = pixbuf.saturate_and_pixelate 0.2, false
-			end
-
-			#p Gdk::Pixbuf.instance_methods
-			if args[:alpha] then
-				#cairo.paint_with_alpha(args[:alpha])
-				#trans = self.transparent_img
-				#trans = trans.scale_simple(width,height,gtk.gdk.INTERP_NEAREST)
-				self.pixbuf.composite(trans, 0, 0, pixbuf.width, pixbuf.height, 0, 0, 1, 1, Gdk::Pixbuf::INTERP_NEAREST, args[:alpha])
-				return trans
+				pixbuf = pixbuf.saturate_and_pixelate 0.3, false
 			end
 
 			cairo.set_source_pixbuf pixbuf, tile_offset.x, tile_offset.y
-			cairo.paint
+			#if args[:alpha] then
+				cairo.paint args[:alpha]
+			#else
+				#cairo.paint
+			#end
 
 			date, time = tile.map.split(/ /, 2)
 
@@ -80,9 +79,14 @@ class Map < Hash
 				cairo.stroke
 			end
 		end
-
 	end
 
+
+	def merge! map
+		map.each do |coords, tile|
+			self[coords + map.offset] = tile
+		end
+	end
 end # class Map
 
 end # module HavenMap
