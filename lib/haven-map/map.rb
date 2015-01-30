@@ -27,16 +27,14 @@ class Map < Hash
 
 		Dir.entries(mapdir).each do |item|
 			/^tile_(?<x>[0-9-]*)_(?<y>[0-9-]*)\.png$/ =~ item or next
-			#tiles["#{x}|#{y}"] = HavenMap::Tile.new x, y, mapdir + item
 			self[Coords::new(x,y)] = HavenMap::Tile.new :x => x, :y => y,
 				:filename => mapdir + item,
-				:map => item
+				:map => name
 		end
 	end
 
 	def draw args
 		size = args[:target].allocation
-		#cairo = args[:cairo]
 		cairo = args[:target].window.create_cairo_context
 		tile_size = args[:tile_size]
 
@@ -53,11 +51,7 @@ class Map < Hash
 			end
 
 			cairo.set_source_pixbuf pixbuf, tile_offset.x, tile_offset.y
-			#if args[:alpha] then
-				cairo.paint args[:alpha]
-			#else
-				#cairo.paint
-			#end
+			cairo.paint args[:alpha]
 
 			date, time = tile.map.split(/ /, 2)
 

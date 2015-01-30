@@ -121,7 +121,6 @@ class MapHandler
 				:offset => @offset + @overlay_offset,
 				:show_grid => @show_grid,
 				:alpha => (@drag and @dragmode == :overlay) ? 0.5 : 0.7
-				#:alpha => 0.7
 		end
 	end
 

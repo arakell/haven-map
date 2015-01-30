@@ -64,6 +64,7 @@
         <property name="label" translatable="yes">Display labels</property>
         <property name="short_label" translatable="yes">Display labels</property>
         <property name="stock_id">gtk-info</property>
+        <signal name="toggled" handler="toggle_labels" swapped="no"/>
       </object>
     </child>
     <child>
@@ -71,6 +72,7 @@
         <property name="label" translatable="yes">Display markers</property>
         <property name="short_label" translatable="yes">Display markers</property>
         <property name="stock_id">gtk-color-picker</property>
+        <property name="sensitive">False</property>
       </object>
     </child>
     <child>
@@ -87,6 +89,8 @@
       <object class="GtkToggleAction" id="grid-toggle">
         <property name="label" translatable="yes">Display grid</property>
         <property name="short_label" translatable="yes">Display grid</property>
+        <property name="stock_id">gtk-cut</property>
+        <signal name="toggled" handler="toggle_grid" swapped="no"/>
       </object>
     </child>
   </object>
@@ -394,6 +398,58 @@
                 <property name="label" translatable="yes">toolbutton5</property>
                 <property name="use_underline">True</property>
                 <signal name="clicked" handler="zoom_normal" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="toolbutton10">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="toolbutton11">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">labels-toggle</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton11</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="toolbutton12">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">markers-toggle</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton12</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="toolbutton13">
+                <property name="use_action_appearance">True</property>
+                <property name="related_action">grid-toggle</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">toolbutton13</property>
+                <property name="use_underline">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>

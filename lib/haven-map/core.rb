@@ -1,14 +1,11 @@
 # encoding: utf-8
 
-# TODO
-# - merge mode
+# TODO (in roughly this order)
 # - configuration file
-# - multiple map dirs
+# - configuration dialog
 # - saving window state
 # - custom markers
-# - tile labels (toggleable) (only for zoom >= 0)
-# - configuration dialog
-# - grid toggling
+# - multiple map dirs
 
 require 'yaml'
 require 'optparse'
@@ -115,9 +112,6 @@ class Core
 
 			if map.offset
 				@merged.merge! map
-				#map.each do |coords, tile|
-					#@merged[coords + map.offset] = tile
-				#end
 			else
 				@unmerged.push map
 			end
@@ -206,6 +200,16 @@ class Core
 
 	def merger_down
 		@merger_map.overlay_move Coords.new(0,1)
+	end
+
+	def toggle_labels
+		@show_labels = !@show_labels
+		@main_map.show_source = @show_labels
+	end
+
+	def toggle_grid
+		@show_grid = !@show_grid
+		@main_map.show_grid = @show_grid
 	end
 end # class Core
 
