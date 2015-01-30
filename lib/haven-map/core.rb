@@ -101,6 +101,10 @@ class Core
 			:zoom => { :min => -3, :max => 0 },
 			:base => @merged
 
+		if @unmerged.empty? then
+			@builder.get_object('merge').sensitive = false
+		end
+
 		Gtk.main
 	end
 
@@ -108,6 +112,8 @@ class Core
 		basedir = Pathname.new(@path)
 		Dir.entries(basedir).select(){|i| i[0] != '.' and Dir.exists? basedir + i }.sort.each do |i|
 			map = HavenMap::Map.new basedir, i
+			next if map.empty?
+
 			@maps[i] = map
 
 			if map.offset
@@ -150,6 +156,8 @@ class Core
 
 
 	def merger_start
+		return if @unmerged.empty?
+
 		if !@merging then
 			merger_next
 		end
@@ -165,6 +173,7 @@ class Core
 			@merging = @unmerged.shift
 			@merger_map.overlay = @merging
 		else
+			@builder.get_object('merge').sensitive = false
 			merger_close
 		end
 	end
