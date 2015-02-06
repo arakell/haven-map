@@ -220,6 +220,9 @@ class Core
 		@show_grid = !@show_grid
 		@main_map.show_grid = @show_grid
 	end
+
+	def physical_merge target
+	end
 end # class Core
 
 end # module HavenMap
