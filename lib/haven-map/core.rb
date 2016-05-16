@@ -1,12 +1,5 @@
 # encoding: utf-8
 
-# TODO (in roughly this order)
-# - configuration file
-# - configuration dialog
-# - saving window state
-# - custom markers
-# - multiple map dirs
-
 require 'yaml'
 require 'optparse'
 
