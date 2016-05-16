@@ -12,3 +12,5 @@ NEW TODO:
 - initial view offset
 - initial tile offset (defaults to view offset)
 - cave layer(s)
+
+- per-tile drawing (extra zoom)
