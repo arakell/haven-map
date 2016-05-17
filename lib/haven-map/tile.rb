@@ -23,8 +23,7 @@ class Tile
 	end
 
 	def surface
-		return @surface if @surface
-		@surface = Cairo::ImageSurface.from_png(@filename.to_s)
+		@surface ||= Cairo::ImageSurface.from_png(@filename.to_s)
 	end
 
 end # class Tile
