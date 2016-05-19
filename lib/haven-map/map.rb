@@ -16,6 +16,7 @@ class Map < Hash
 		read root, name if root and name
 
 		# TODO size
+		# TODO initialize this on map load, not app start
 		#@surface = Cairo::ImageSurface.create Cairo::FORMAT_ARGB32, size.x * 100, size.y * 100
 		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, @mapsize.x * 100, @mapsize.y * 100
 		@context = Cairo::Context.new @surface
