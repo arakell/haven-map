@@ -47,6 +47,24 @@ class Coords
 		Coords.new((@x.to_f / b).round.to_i, (@y.to_f / b).round.to_i)
 	end
 
+	def min b
+		Coords.new([@x, b.x].min, [@y, b.y].min)
+	end
+
+	def max b
+		Coords.new([@x, b.x].max, [@y, b.y].max)
+	end
+
+	def min! b
+		@x = [@x, b.x].min
+		@y = [@y, b.y].min
+	end
+
+	def max! b
+		@x = [@x, b.x].max
+		@y = [@y, b.y].max
+	end
+
 	def to_s
 		"#{@x},#{@y}"
 	end
