@@ -18,16 +18,16 @@ class Map < Hash
 		# TODO size
 		#@surface = Cairo::ImageSurface.create Cairo::FORMAT_ARGB32, size.x * 100, size.y * 100
 		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, @mapsize.x * 100, @mapsize.y * 100
-		ap @surface.methods
+		@context = Cairo::Context.new @surface
 		each do
 			#size = args[:target].allocation
-			cairo = @surface.get_context
 			tile_size = 100
 			each do |coords, tile|
-				pixbuf = tile.pixbuf tile_size
+				#pixbuf = tile.pixbuf tile_size
 				tile_offset = coords * tile_size
-				cairo.set_source_pixbuf pixbuf, tile_offset.x, tile_offset.y
-				cairo.paint
+				#@context.set_source_pixbuf pixbuf, tile_offset.x, tile_offset.y
+				@context.set_source tile.surface, tile_offset.x, tile_offset.y
+				@context.paint
 			end
 		end
 	end
