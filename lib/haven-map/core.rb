@@ -13,6 +13,7 @@ require 'haven-map/tile'
 require 'haven-map/map-handler'
 require 'haven-map/map'
 
+TILE_SIZE = 100
 BASE_TILE_SIZE = 100
 DEFAULT_ZOOM = 0
 MIN_ZOOM = -4
@@ -45,8 +46,8 @@ class Core
 
 
 
-		#@path = '/home/qba/.local/haven/map'
-		@path = '/home/qba/games/hafen/ender/map'
+		@path = '/home/qba/.local/haven/map'
+		#@path = '/home/qba/games/hafen/ender/map'
 
 		@tiles = HavenMap::Map.new
 		@maps = {}

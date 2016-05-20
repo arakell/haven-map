@@ -9,7 +9,7 @@ class Map < Hash
 	attr_reader :offset
 
 	def initialize root = nil, name = nil
-		@bounds = new Bounds
+		@bounds = Bounds.new
 
 		read root, name if root and name
 
@@ -29,6 +29,9 @@ class Map < Hash
 				@context.paint
 			end
 		end
+	end
+
+	def surface
 	end
 
 	def write_offset! offset
@@ -58,14 +61,18 @@ class Map < Hash
 		ap @bounds.size
 		ap @surface
 		return if !@surface
+		
 		timer 'draw' do
 			size = args[:target].allocation
 			cairo = args[:target].window.create_cairo_context
 			tile_size = args[:tile_size]
 
 			#ap cairo.methods
-			cairo.set_source @surface, 0, 0
+			cairo.set_source @surface, args[:offset].x, args[:offset].y
 			cairo.paint args[:alpha]
+
+			# TODO reimplement zoom
+
 			#offset = Coords.new(size.width / 2, size.height / 2)
 			#each do |coords, tile|
 				#tile_offset = offset + coords * tile_size + args[:offset]
