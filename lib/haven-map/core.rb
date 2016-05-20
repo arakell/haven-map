@@ -45,7 +45,8 @@ class Core
 
 
 
-		@path = '/home/qba/.local/haven/map'
+		#@path = '/home/qba/.local/haven/map'
+		@path = '/home/qba/games/hafen/ender/map'
 
 		@tiles = HavenMap::Map.new
 		@maps = {}

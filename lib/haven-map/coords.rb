@@ -70,4 +70,30 @@ class Coords
 	end
 end # class Coords
 
+class Bounds
+	attr_accessor :min, :max
+
+	def initialize min = nil, max = nil
+		@min = min || Coords.new(0,0)
+		@max = min || Coords.new(0,0)
+	end
+
+	def size
+		@max - @min
+	end
+
+	def width
+		size.x
+	end
+
+	def height
+		size.y
+	end
+
+	def expand! coords
+		@min.min! coords
+		@max.max! coords
+	end
+end
+
 end # module HavenMap

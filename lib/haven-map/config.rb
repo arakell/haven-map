@@ -8,9 +8,12 @@ require 'pathname'
 
 module HavenMap
 
+TILE_SIZE = 100
+POINT_SIZE = 1
+
 class Config < Hash
 	VERSION='1.0'
-	APPNAME='kaiju'
+	APPNAME='haven-map'
 
 	def initialize extra = {}
 		merge!({

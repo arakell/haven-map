@@ -9,16 +9,14 @@ class Map < Hash
 	attr_reader :offset
 
 	def initialize root = nil, name = nil
-		@mapmin = Coords.new(0,0)
-		@mapmax = Coords.new(0,0)
-		@mapsize = Coords.new(0,0)
+		@bounds = new Bounds
 
 		read root, name if root and name
 
 		# TODO size
 		# TODO initialize this on map load, not app start
 		#@surface = Cairo::ImageSurface.create Cairo::FORMAT_ARGB32, size.x * 100, size.y * 100
-		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, @mapsize.x * 100, @mapsize.y * 100
+		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, @bounds.width * TILE_SIZE, @bounds.height * TILE_SIZE
 		@context = Cairo::Context.new @surface
 		each do
 			#size = args[:target].allocation
@@ -52,15 +50,12 @@ class Map < Hash
 			self[coords] = HavenMap::Tile.new :x => x, :y => y,
 				:filename => mapdir + item,
 				:map => name
-			@mapmin.min! coords
-			@mapmax.max! coords
+			@bounds.expand! coords
 		end
-
-		@mapsize = @mapmax - @mapmin
 	end
 
 	def draw args
-		ap @mapsize
+		ap @bounds.size
 		ap @surface
 		return if !@surface
 		timer 'draw' do
