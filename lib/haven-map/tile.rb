@@ -10,7 +10,8 @@ class Tile
 	include DataMapper::Resource
 
 	property :id, String, key: true
-	property :coords, Coords
+	#property :coords, Coords
+	property :coords, HavenMap::Coords
 	property :layer, Integer
 	property :date, Date
 	property :current, Boolean, default: true
@@ -29,15 +30,19 @@ class Tile
 	end
 
 	def pixbuf size = 100
-		return @pixbuf[size] if @pixbuf[size]
-
-		@pixbuf[size] = (size == 100) ?
-			Gdk::Pixbuf.new(@filename.to_s) :
-			self.pixbuf.scale(size, size)
+		@pixbuf ||= Gdk::Pixbuf.new @filename.to_s
 	end
 
+	#def pixbuf size = 100
+		#return @pixbuf[size] if @pixbuf[size]
+
+		#@pixbuf[size] = (size == 100) ?
+			#Gdk::Pixbuf.new(@filename.to_s) :return 
+			#self.pixbuf.scale(size, size)
+	#end
+
 	def surface
-		@surface ||= Cairo::ImageSurface.from_png(@filename.to_s)
+		@surface ||= Cairo::ImageSurface.from_png @filename.to_s
 	end
 
 end # class Tile

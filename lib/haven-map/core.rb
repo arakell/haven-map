@@ -25,34 +25,14 @@ class Core
 
 	def initialize config
 		@config = config
-		#options = {
-			#:config    => XDG['CONFIG_HOME'].to_s + "/#{APPNAME}/rc.yaml",
-			#:db        => XDG['DATA_HOME'].to_s + "/#{APPNAME}/lite.sqlite3",
-			#:debug     => false,
-			#:mode      => 'simple',
-			#:show_icon => true
-		#}
-		#cli = {}
-		#OptionParser.new do |opts|
-		#end.parse!
-
-		#tmp = options.merge cli
-
-		#if File.exists? tmp[:config]
-			#yaml = YAML::load_file(tmp[:config]).symbolize_keys!
-			#options.merge! yaml
-		#end
-		#options.merge! cli
-
 
 		if @config[:sources].empty? then
 			puts "no sources configured"
 			exit
 		end
 
+		# TODO proper in-app source management
 		@path = "#{@config[:sources][0]}/map"
-		#@path = '/home/qba/.local/haven/map'
-		#@path = '/home/qba/games/hafen/ender/map'
 
 		@tiles = HavenMap::Map.new
 		@maps = {}
@@ -60,15 +40,17 @@ class Core
 		@unmerged = []
 
 		@zoom_level = DEFAULT_ZOOM
-		@tile_size = BASE_TILE_SIZE
-		@offset = Coords.new(BASE_TILE_SIZE / 2, BASE_TILE_SIZE / 2)
+		#@tile_size = BASE_TILE_SIZE
+		#@offset = Coords.new BASE_TILE_SIZE/2, BASE_TILE_SIZE/2
 
-		read_maps
+		#read_maps
 
 		@mode = :normal
 
+		initialize_ui
+	end
 
-
+	def initialize_ui
 		Gtk::init
 
 		@builder = Gtk::Builder.new
@@ -108,21 +90,24 @@ class Core
 		Gtk.main
 	end
 
-	def read_maps
-		basedir = Pathname.new(@path)
-		Dir.entries(basedir).select(){|i| i[0] != '.' and Dir.exists? basedir + i }.sort.each do |i|
-			map = HavenMap::Map.new basedir, i
-			next if map.empty?
-
-			@maps[i] = map
-
-			if map.offset
-				@merged.merge! map
-			else
-				@unmerged.push map
-			end
-		end
+	def read_map
 	end
+
+	#def read_maps
+		#basedir = Pathname.new(@path)
+		#Dir.entries(basedir).select(){|i| i[0] != '.' and Dir.exists? basedir + i }.sort.each do |i|
+			#map = HavenMap::Map.new basedir, i
+			#next if map.empty?
+
+			#@maps[i] = map
+
+			#if map.offset
+				#@merged.merge! map
+			#else
+				#@unmerged.push map
+			#end
+		#end
+	#end
 
 	def quit
 		Gtk.main_quit
@@ -130,13 +115,13 @@ class Core
 
 	def select_map widget
 		if !widget.selected
-			@tiles = HavenMap::Map.new
+			#@tiles = HavenMap::Map.new
 			@main_map.clear
 		elsif widget.selected[0] == 'merged'
-			@tiles = @merged
+			#@tiles = @merged
 			@main_map.base = @merged
 		else
-			@tiles = @maps[widget.selected[0]]
+			#@tiles = @maps[widget.selected[0]]
 			@main_map.base = @maps[widget.selected[0]]
 		end
 		@map.queue_draw

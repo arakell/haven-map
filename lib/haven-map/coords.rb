@@ -2,17 +2,46 @@
 #
 require 'data_mapper'
 
+module DataMapper
+	class Property
+		class Coords < String
+
+			length 13
+
+			def custom?
+				true
+			end
+
+			def primitive?(value)
+				value.kind_of?(HavenMap::Coords)
+			end
+
+			def valid?(value, negated = false)
+				super || primitive?(value) || value.kind_of?(::String)
+			end
+
+			def load(value)
+				HavenMap::Coords.parse(value)
+			end
+
+			def dump(value)
+				value.to_s unless value.nil?
+			end
+
+			def typecast_to_primitive(value)
+				load(value)
+			end
+
+		end
+	end
+end
+
+
+
 module HavenMap
 
-class Coords < DataMapper::Property::Object
+class Coords
 	attr_reader :x, :y
-
-	def dump value
-	end
-
-	def load value
-	end
-
 
 	def initialize x = nil, y = nil
 		if x.nil?
@@ -76,6 +105,10 @@ class Coords < DataMapper::Property::Object
 
 	def to_s
 		"#{@x},#{@y}"
+	end
+
+	def self.parse value
+		(@x, @y) = value.split(/,/)
 	end
 end # class Coords
 
