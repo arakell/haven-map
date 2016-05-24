@@ -24,6 +24,7 @@ module HavenMap
 class Core
 
 	def initialize config
+		@config = config
 		#options = {
 			#:config    => XDG['CONFIG_HOME'].to_s + "/#{APPNAME}/rc.yaml",
 			#:db        => XDG['DATA_HOME'].to_s + "/#{APPNAME}/lite.sqlite3",
@@ -44,9 +45,13 @@ class Core
 		#options.merge! cli
 
 
+		if @config[:sources].empty? then
+			puts "no sources configured"
+			exit
+		end
 
-
-		@path = '/home/qba/.local/haven/map'
+		@path = "#{@config[:sources][0]}/map"
+		#@path = '/home/qba/.local/haven/map'
 		#@path = '/home/qba/games/hafen/ender/map'
 
 		@tiles = HavenMap::Map.new

@@ -1,9 +1,18 @@
 # encoding: utf-8
+#
+require 'data_mapper'
 
 module HavenMap
 
-class Coords
+class Coords < DataMapper::Property::Object
 	attr_reader :x, :y
+
+	def dump value
+	end
+
+	def load value
+	end
+
 
 	def initialize x = nil, y = nil
 		if x.nil?

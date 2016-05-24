@@ -2,7 +2,7 @@
 #encoding: utf-8
 
 require 'haven-map/core'
-#require 'haven-map/config'
+require 'haven-map/config'
 
-#config = HavenMap::Config.new
-HavenMap::Core.new nil
+config = HavenMap::Config.new
+HavenMap::Core.new config

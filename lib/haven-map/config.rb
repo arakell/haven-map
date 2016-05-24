@@ -14,15 +14,10 @@ class Config < Hash
 
 	def initialize extra = {}
 		merge!({
-			:config        => "#{XDG['CONFIG_HOME'].to_s}/#{APPNAME}/config.yaml",
-			:db            => "#{XDG['DATA_HOME'].to_s}/#{APPNAME}/local.sqlite3",
-			:server        => "http://jira.xtm-intl.com",
-			:columns       => [],
-			:typeLabel     => false,
-			:priorityLabel => false,
-			:statusLabel   => true,
-			#issues: "http://jira.xtm-intl.com/browse/"
-			:verbose       => false
+			config: "#{XDG['CONFIG_HOME'].to_s}/#{APPNAME}/config.yaml",
+			db: "#{XDG['DATA_HOME'].to_s}/#{APPNAME}/tiles.sqlite3",
+			sources: [],
+			verbose: false
 		})
 		merge! extra
 
@@ -37,11 +32,11 @@ class Config < Hash
 			opts.separator "Specific options:"
 
 			opts.on "--config=FILE", "Use a non-default config file" do |val|
-				   options[:config] = val
+			   cli[:config] = val
 			end
 
 			opts.on "--db=FILE", "Use a non-default local database file" do |val|
-				   options[:db] = val
+			   cli[:db] = val
 			end
 
 			opts.separator ""
@@ -70,13 +65,7 @@ class Config < Hash
 
 
 		if File.exists? tmp[:config]
-			#conf = YAML::load_file self[:config]
-			#ap conf
-			#ap conf.symbolize_keys
-			#ap self
-			#ap merge conf.symbolize_keys
-			#exit
-			merge! YAML::load_file(self[:config]).symbolize_keys!
+			merge! YAML::load_file(tmp[:config]).symbolize_keys!
 		end
 		merge! cli
 	end
