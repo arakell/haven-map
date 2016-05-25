@@ -122,6 +122,16 @@
         <signal name="toggled" handler="toggle_grid" swapped="no"/>
       </object>
     </child>
+    <child>
+      <object class="GtkRadioAction" id="layer">
+        <property name="draw_as_radio">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioAction" id="layer1">
+        <property name="draw_as_radio">True</property>
+      </object>
+    </child>
   </object>
   <object class="GtkFileChooserDialog" id="filechooserdialog1">
     <property name="can_focus">False</property>
@@ -160,6 +170,31 @@
       <!-- column-name id -->
       <column type="gchararray"/>
     </columns>
+  </object>
+  <object class="GtkActionGroup" id="merger-actions">
+    <child>
+      <object class="GtkAction" id="merger-merge">
+        <property name="stock_id">gtk-apply</property>
+        <signal name="activate" handler="merger_confirm" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="merger-skip">
+        <property name="stock_id">gtk-go-forward</property>
+        <signal name="activate" handler="merger_skip" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="merger-quit">
+        <property name="stock_id">gtk-quit</property>
+        <signal name="activate" handler="merger_close" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="merger-discard">
+        <property name="stock_id">gtk-delete</property>
+      </object>
+    </child>
   </object>
   <object class="GtkWindow" id="main-window">
     <property name="can_focus">False</property>
@@ -346,6 +381,7 @@
                         <property name="related_action">merge</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="action_name">Merge</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -517,65 +553,205 @@
           </packing>
         </child>
         <child>
-          <object class="GtkPaned" id="paned1">
+          <object class="GtkBox" id="box3">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow1">
-                <property name="width_request">150</property>
+              <object class="GtkToolbar" id="levelbar">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkTreeView" id="maplist">
+                  <object class="GtkRadioToolButton" id="toolbutton18">
+                    <property name="related_action">layer</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="events">GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK | GDK_BUTTON2_MOTION_MASK | GDK_BUTTON3_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK | GDK_PROPERTY_CHANGE_MASK | GDK_VISIBILITY_NOTIFY_MASK | GDK_PROXIMITY_IN_MASK | GDK_PROXIMITY_OUT_MASK | GDK_SUBSTRUCTURE_MASK | GDK_SCROLL_MASK | GDK_TOUCH_MASK | GDK_SMOOTH_SCROLL_MASK</property>
-                    <property name="vscroll_policy">natural</property>
-                    <property name="model">maps</property>
-                    <property name="headers_visible">False</property>
-                    <property name="search_column">0</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection">
-                        <signal name="changed" handler="select_map" swapped="no"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                        <property name="title" translatable="yes">maps</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                    </child>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Overground</property>
+                    <property name="label" translatable="yes">0</property>
+                    <property name="use_underline">True</property>
+                    <property name="active">True</property>
                   </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toolbutton19">
+                    <property name="related_action">layer1</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Underground 1</property>
+                    <property name="label" translatable="yes">1</property>
+                    <property name="use_underline">True</property>
+                    <property name="active">True</property>
+                    <property name="group">toolbutton18</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toolbutton20">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">2</property>
+                    <property name="use_underline">True</property>
+                    <property name="active">True</property>
+                    <property name="group">toolbutton18</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toolbutton21">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">3</property>
+                    <property name="use_underline">True</property>
+                    <property name="active">True</property>
+                    <property name="group">toolbutton18</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toolbutton22">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">4</property>
+                    <property name="use_underline">True</property>
+                    <property name="group">toolbutton18</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toolbutton23">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">5</property>
+                    <property name="use_underline">True</property>
+                    <property name="group">toolbutton18</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="resize">False</property>
-                <property name="shrink">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkViewport" id="viewport1">
+              <object class="GtkBox" id="box4">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkDrawingArea" id="map">
-                    <property name="width_request">400</property>
-                    <property name="height_request">300</property>
+                  <object class="GtkLabel" id="map-title">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
+                    <property name="label" translatable="yes">label</property>
                   </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkViewport" id="viewport1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkDrawingArea" id="map">
+                        <property name="width_request">400</property>
+                        <property name="height_request">300</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="resize">True</property>
-                <property name="shrink">True</property>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolbar" id="mergebar">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="toolbar_style">icons</property>
+                <child>
+                  <object class="GtkToolButton" id="toolbutton14">
+                    <property name="use_action_appearance">True</property>
+                    <property name="related_action">merger-merge</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">toolbutton6</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-apply</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbutton15">
+                    <property name="use_action_appearance">True</property>
+                    <property name="related_action">merger-skip</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">toolbutton7</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-no</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbutton24">
+                    <property name="use_action_appearance">True</property>
+                    <property name="related_action">merger-discard</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">toolbutton24</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -585,26 +761,6 @@
             <property name="position">2</property>
           </packing>
         </child>
-      </object>
-    </child>
-  </object>
-  <object class="GtkActionGroup" id="merger-actions">
-    <child>
-      <object class="GtkAction" id="merger-merge">
-        <property name="stock_id">gtk-apply</property>
-        <signal name="activate" handler="merger_confirm" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="merger-skip">
-        <property name="stock_id">gtk-no</property>
-        <signal name="activate" handler="merger_skip" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="merger-quit">
-        <property name="stock_id">gtk-quit</property>
-        <signal name="activate" handler="merger_close" swapped="no"/>
       </object>
     </child>
   </object>

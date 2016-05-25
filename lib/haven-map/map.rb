@@ -1,9 +1,9 @@
-require 'haven-map/map'
+require 'haven-map/layer'
 require 'haven-map/coords'
 
 module HavenMap
 
-class MapHandler
+class Map
 	attr_reader :overlay_position
 
 	def initialize widget, args = {}
@@ -11,7 +11,7 @@ class MapHandler
 
 		@widget = widget
 		@options = args
-		@base = args[:base] ? args[:base] : Map.new
+		@base = args[:base] ? args[:base] : Layer.new
 		@tile_size = @base_tile_size = args[:tile_size]
 
 		connect_events

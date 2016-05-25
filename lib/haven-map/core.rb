@@ -10,7 +10,7 @@ require 'awesome_print'
 require 'haven-map/utils'
 require 'haven-map/coords'
 require 'haven-map/tile'
-require 'haven-map/map-handler'
+#require 'haven-map/map-handler'
 require 'haven-map/map'
 
 TILE_SIZE = 100
@@ -34,10 +34,10 @@ class Core
 		# TODO proper in-app source management
 		@path = "#{@config[:sources][0]}/map"
 
-		@tiles = HavenMap::Map.new
-		@maps = {}
-		@merged = HavenMap::Map.new
-		@unmerged = []
+		#@tiles = HavenMap::Map.new
+		#@maps = {}
+		#@merged = HavenMap::Map.new
+		#@unmerged = []
 
 		@zoom_level = DEFAULT_ZOOM
 		#@tile_size = BASE_TILE_SIZE
@@ -45,9 +45,14 @@ class Core
 
 		#read_maps
 
-		@mode = :normal
+		#@mode = :normal
 
+		initialize_data
 		initialize_ui
+	end
+
+	def initialize_data
+		#@map = HavenMap::Map.new
 	end
 
 	def initialize_ui
@@ -115,13 +120,13 @@ class Core
 
 	def select_map widget
 		if !widget.selected
-			#@tiles = HavenMap::Map.new
+			@tiles = HavenMap::Map.new
 			@main_map.clear
 		elsif widget.selected[0] == 'merged'
-			#@tiles = @merged
+			@tiles = @merged
 			@main_map.base = @merged
 		else
-			#@tiles = @maps[widget.selected[0]]
+			@tiles = @maps[widget.selected[0]]
 			@main_map.base = @maps[widget.selected[0]]
 		end
 		@map.queue_draw

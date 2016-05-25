@@ -8,10 +8,13 @@ module HavenMap
 class Layer < Hash
 	attr_reader :offset
 
-	def initialize root = nil, name = nil
+	#def initialize root = nil, name = nil
+	def initialize opts = {}
 		@bounds = Bounds.new
+		@tiles = opts[:tiles]
+		@name = opts[:name]
 
-		read root, name if root and name
+		#read root, name if root and name
 
 		# TODO size
 		# TODO initialize this on map load, not app start
