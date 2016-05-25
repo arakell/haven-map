@@ -62,11 +62,19 @@ class Coords
 	end
 
 	def + b
-		Coords.new @x + b.x, @y + b.y
+		if b.is_a? Fixnum
+			Coords.new @x + b, @y + b
+		elsif b.is_a? Coords
+			Coords.new @x + b.x, @y + b.y
+		end
 	end
 
 	def - b
-		Coords.new @x - b.x, @y - b.y
+		if b.is_a? Fixnum
+			Coords.new @x - b, @y - b
+		elsif b.is_a? Coords
+			Coords.new @x - b.x, @y - b.y
+		end
 	end
 
 	def * b
@@ -135,6 +143,10 @@ class Bounds
 	def expand! coords
 		@min.min! coords
 		@max.max! coords
+	end
+
+	def to_s
+		"#{min}/#{max}"
 	end
 end
 

@@ -4,68 +4,95 @@ require 'haven-map/coords'
 module HavenMap
 
 class Map
-	attr_reader :overlay_position
+	attr_writer :widget
+	attr_reader :overlay_position, :layers, :layer
 
-	def initialize widget, args = {}
-		clear
+	def initialize opts = {}
+		@widget = opts[:widget]
+		@tiles = opts[:tiles]
+		@overlay = nil
 
-		@widget = widget
-		@options = args
-		@base = args[:base] ? args[:base] : Layer.new
-		@tile_size = @base_tile_size = args[:tile_size]
+		#displayed layer
+		@layer = 0
+		@sublayers = false
 
-		connect_events
+		@offset = Coords.new
+		@overlay_offset = Coords.new
+
+		@zoom_level = opts[:zoom] || 0
+
+		#@tile_size = @base_tile_size = args[:tile_size]
+
+		build_layers
 	end
 
-	def connect_events
-		@widget.signal_connect 'button-press-event' do |widget, event|
-			if event.button == 1 then
-				@drag = Coords.new event
-				@dragmode = :offset
-			elsif event.button == 3 and @overlay then
-				@drag = Coords.new event
-				@dragmode = :overlay
-			else
-				@dragmode = nil
-			end
+	def build_layers
+		@layers = @tiles.to_a.map do |tiles|
+			HavenMap::Layer.new tiles: tiles
 		end
+	end
 
-		@widget.signal_connect 'button-release-event' do |widget, event|
-			if @drag and @dragmode == :overlay then
-				@overlay_position = @overlay_offset.rdiv @tile_size
-				@overlay_offset = @overlay_position * @tile_size
-				redraw
-			end
-			@drag = nil
+
+	def merge type, layer, &block
+		@layer = 0 if type == :surface and @layer != 0
+		@layer = 1 if type == :cave and @layer == 0
+
+		zoom_normal
+
+		@overlay_cb = block
+		puts @overlay_cb
+		@overlay_offset = Coords.new
+		@overlay = layer
+
+		redraw
+	end
+
+
+
+	def button_press widget, event
+		if event.button == 1 then
+			@drag = Coords.new event
+			@dragmode = :offset
+		elsif event.button == 3 and @overlay then
+			@drag = Coords.new event
+			@dragmode = :overlay
+		else
+			@dragmode = nil
 		end
+	end
 
-		@widget.signal_connect 'motion-notify-event' do |widget, event|
-			if @drag then
-				diff = Coords.new(event) - @drag
-				if @dragmode == :offset then
-					@offset += diff
-				elsif @dragmode == :overlay then
-					@overlay_offset += diff
-				end
-				@drag.reset event
-				redraw
-			end
+	def button_release widget, event
+		if @drag and @dragmode == :overlay then
+			@overlay_position = @overlay_offset.rdiv TILE_SIZE
+			@overlay_offset = @overlay_position * TILE_SIZE
+			@overlay_cb.call @overlay_position if @overlay_cb
+			redraw
 		end
+		@drag = nil
+	end
 
-
-		@widget.signal_connect 'scroll-event' do |widget, event|
-			size = @widget.allocation
-			center = Coords.new(event.x - size.width / 2, event.y - size.height / 2)
-			if event.direction == Gdk::ScrollDirection::UP then
-				zoom @zoom_level + 1, center
-			elsif event.direction == Gdk::ScrollDirection::DOWN then
-				zoom @zoom_level - 1, center
-			end
+	def scroll widget, event
+		# TODO change layer with ctrl
+		# TODO feed that back to sidebar
+		size = @widget.allocation
+		center = Coords.new(event.x - size.width / 2, event.y - size.height / 2)
+		if event.direction == Gdk::ScrollDirection::UP then
+			zoom @zoom_level + 1, center
+		elsif event.direction == Gdk::ScrollDirection::DOWN then
+			zoom @zoom_level - 1, center
 		end
+	end
 
-
-		@widget.signal_connect 'draw' do
-			draw
+	def motion widget, event
+		if @drag then
+			diff = Coords.new(event) - @drag
+			if @dragmode == :offset then
+				@offset += diff
+			elsif @dragmode == :overlay then
+				@overlay_offset += diff
+			end
+			@drag.reset event
+			redraw
 		end
 	end
 
@@ -74,7 +101,9 @@ class Map
 	end
 
 	def zoom level, center = Coords.new
-		return if !@options[:zoom]
+		return if @overlay
+		#return if !@options[:zoom]
+		return
 
 		level = @options[:zoom][:min] if level < @options[:zoom][:min]
 		level = @options[:zoom][:max] if level > @options[:zoom][:max]
@@ -108,48 +137,72 @@ class Map
 	end
 
 	def draw
-		@base.draw :target => @widget,
-			:tile_size => @tile_size,
-			:offset => @offset,
-			:show_source => (@show_source and @zoom_level >= 0),
-			:show_grid => @show_grid,
-			:background => @overlay ? true : false
+		size = @widget.allocation
+		cairo = @widget.window.create_cairo_context
+
+		center = Coords.new(size.width / 2, size.height / 2)
+
+		cairo.set_source_rgba 1, 0, 0, 0.5
+
+		cairo.move_to center.x + @offset.x - 20, center.y + @offset.y - 20
+		cairo.line_to center.x + @offset.x + 20, center.y + @offset.y + 20
+
+		cairo.move_to center.x + @offset.x - 20, center.y + @offset.y + 20
+		cairo.line_to center.x + @offset.x + 20, center.y + @offset.y - 20
+
+		cairo.stroke
+
+		if @sublayers
+			@layers[0].draw :target => cairo,
+			:offset => @offset + center
+
+			(1..@layer).draw :target => cairo,
+				:offset => @offset + center,
+				:alpha => 0.8
+		else
+			@layers[@layer].draw :target => cairo,
+			:offset => @offset + center
+		end
+
+		#@base.draw :target => @widget,
+			#:tile_size => @tile_size,
+			#:offset => @offset,
+			#:show_source => (@show_source and @zoom_level >= 0),
+			#:show_grid => @show_grid,
+			#:background => @overlay ? true : false
 
 		if @overlay then
-			@overlay.draw :target => @widget,
-				:tile_size => @tile_size,
-				:offset => @offset + @overlay_offset,
-				:show_grid => @show_grid,
+			@overlay.draw :target => cairo,
+				#:tile_size => @tile_size,
+				:offset => @offset + @overlay_offset + center,
+				#:show_grid => @show_grid,
 				:alpha => (@drag and @dragmode == :overlay) ? 0.5 : 0.7
 		end
-	end
-
-	def drag
 	end
 
 
 
 	def clear
-		@base = HavenMap::Map.new
-		@offset = HavenMap::Coords.new
+		#@base = HavenMap::Map.new
+		#@offset = HavenMap::Coords.new
 
-		@overlay = nil
-		@overlay_position = Coords.new
-		@overlay_offset = Coords.new
+		#@overlay = nil
+		#@overlay_position = Coords.new
+		#@overlay_offset = Coords.new
 
-		@zoom_level = 0
+		#@zoom_level = 0
 	end
 
 
-	def base= base
-		if base.nil? then
-			@base = HavenMap::Map.new
-		else
-			@base = base
-		end
+	#def base= base
+		#if base.nil? then
+			#@base = HavenMap::Map.new
+		#else
+			#@base = base
+		#end
 
-		redraw
-	end
+		#redraw
+	#end
 
 	def overlay= overlay
 		@overlay = overlay

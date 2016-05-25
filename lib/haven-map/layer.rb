@@ -5,16 +5,15 @@ require 'haven-map/tile'
 
 module HavenMap
 
-class Layer < Hash
-	attr_reader :offset
+#class Layer < Hash
+class Layer
+	attr_reader :offset, :tiles, :tilemap
 
 	#def initialize root = nil, name = nil
-	def initialize opts = {}
-		@bounds = Bounds.new
-		@tiles = opts[:tiles]
-		@name = opts[:name]
-
-		#read root, name if root and name
+	def initialize args = {}
+		@tiles = args[:tiles]
+		@name = args[:name]
+		recount
 
 		# TODO size
 		# TODO initialize this on map load, not app start
@@ -32,21 +31,31 @@ class Layer < Hash
 		#end
 	end
 
+	def retile tiles
+		@tiles = @tiles.concat(tiles).current
+		@surface = nil
+	end
+
+	def recount
+		@bounds = Bounds.new
+		@tilemap = {}
+		@tiles.each do |tile|
+			@bounds.expand! tile.coords
+			@tilemap[tile.coords] = tile
+		end
+
+		@offset = @bounds.min * TILE_SIZE - TILE_SIZE / 2
+	end
+
 	def surface
 		return @surface if @surface
 
 		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, @bounds.width * TILE_SIZE, @bounds.height * TILE_SIZE
 		@context = Cairo::Context.new @surface
-		each do
-			#size = args[:target].allocation
-			each do |coords, tile|
-				tile_offset = (coords - @bounds.min) * TILE_SIZE
-				#puts "draw to #{tile_offset} / #{[@bounds.width, 1].max * TILE_SIZE}×#{[@bounds.height, 1].max * TILE_SIZE}"
-
-				#@context.set_source_pixbuf pixbuf, tile_offset.x, tile_offset.y
-				@context.set_source tile.surface, tile_offset.x, tile_offset.y
-				@context.paint
-			end
+		@tiles.each do |tile|
+			tile_offset = (tile.coords - @bounds.min) * TILE_SIZE
+			@context.set_source tile.surface, tile_offset.x, tile_offset.y
+			@context.paint
 		end
 	end
 
@@ -74,20 +83,24 @@ class Layer < Hash
 	end
 
 	def draw args
-		ap @bounds.size
-		ap surface
+		# TODO reimplement zoom
+
 		return if !surface
+
+		cairo = args[:target]
 		
-		size = args[:target].allocation
-		cairo = args[:target].window.create_cairo_context
-		tile_size = args[:tile_size]
+		#size = args[:target].allocation
+		#cairo = args[:target].window.create_cairo_context
+		#tile_size = args[:tile_size]
 
 		#ap cairo.methods
-		cairo.set_source surface, args[:offset].x, args[:offset].y
+		cairo.set_source surface, args[:offset].x + @offset.x, args[:offset].y + @offset.y
 		#cairo.set_source_pixbuf @pixbuf, args[:offset].x, args[:offset].y
 		cairo.paint args[:alpha]
 
-		# TODO reimplement zoom
+		#TODO grid?
+		#TODO show_source?
+		#TODO background?
 
 		#offset = Coords.new(size.width / 2, size.height / 2)
 		#each do |coords, tile|
@@ -100,9 +113,6 @@ class Layer < Hash
 			#if args[:background] then
 				#pixbuf = pixbuf.saturate_and_pixelate 0.3, false
 			#end
-
-			#cairo.set_source_pixbuf pixbuf, tile_offset.x, tile_offset.y
-			#cairo.paint args[:alpha]
 
 			#date, time = tile.map.split(/ /, 2)
 
@@ -127,11 +137,11 @@ class Layer < Hash
 	end
 
 
-	def merge! map
-		map.each do |coords, tile|
-			self[coords + map.offset] = tile
-		end
-	end
+	#def merge! map
+		#map.each do |coords, tile|
+			#self[coords + map.offset] = tile
+		#end
+	#end
 end # class Map
 
 end # module HavenMap

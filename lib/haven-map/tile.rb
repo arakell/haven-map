@@ -9,40 +9,38 @@ module HavenMap
 class Tile
 	include DataMapper::Resource
 
-	property :id, String, key: true
-	#property :coords, Coords
-	property :coords, HavenMap::Coords
-	property :layer, Integer
-	property :date, Date
+	property :id, Serial, key: true
+	property :coords, Coords
+	#property :coords, HavenMap::Coords
+	property :layer, Integer, default: 0
+	property :date, DateTime
 	property :current, Boolean, default: true
-	property :home, Boolean, default: false
 	property :filename, String
 
-	belongs_to :source
-
-	attr_reader :map
+	belongs_to :source, required: false
 
 	def initialize args
-		self.coords = Coords.new args[:x].to_i, args[:y].to_i
-		self.filename = args[:filename]
-		@map = args[:map]
+		super args
+
+		/^tile_(?<x>[0-9-]*)_(?<y>[0-9-]*)\.png$/ =~ args[:filename].basename
+		@coords = Coords::new(x,y)
+
 		@pixbuf = {}
 	end
 
-	def pixbuf size = 100
+	def pixbuf
 		@pixbuf ||= Gdk::Pixbuf.new @filename.to_s
-	end
-
-	#def pixbuf size = 100
-		#return @pixbuf[size] if @pixbuf[size]
-
 		#@pixbuf[size] = (size == 100) ?
 			#Gdk::Pixbuf.new(@filename.to_s) :return 
 			#self.pixbuf.scale(size, size)
-	#end
+	end
 
 	def surface
 		@surface ||= Cairo::ImageSurface.from_png @filename.to_s
+	end
+
+	def self.current
+		all current: true
 	end
 
 end # class Tile
