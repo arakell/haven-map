@@ -11,6 +11,7 @@ class Layer
 
 	#def initialize root = nil, name = nil
 	def initialize args = {}
+		@number = args[:number]
 		@tiles = args[:tiles]
 		@name = args[:name]
 		recount
@@ -34,6 +35,7 @@ class Layer
 	def retile tiles
 		@tiles = @tiles.concat(tiles).current
 		@surface = nil
+		recount
 	end
 
 	def recount
@@ -41,7 +43,7 @@ class Layer
 		@tilemap = {}
 		@tiles.each do |tile|
 			@bounds.expand! tile.coords
-			@tilemap[tile.coords] = tile
+			@tilemap[tile.coords.to_s] = tile
 		end
 
 		@offset = @bounds.min * TILE_SIZE - TILE_SIZE / 2
@@ -50,7 +52,7 @@ class Layer
 	def surface
 		return @surface if @surface
 
-		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, @bounds.width * TILE_SIZE, @bounds.height * TILE_SIZE
+		@surface = Cairo::ImageSurface.new Cairo::FORMAT_ARGB32, (@bounds.width + 1) * TILE_SIZE, (@bounds.height + 1) * TILE_SIZE
 		@context = Cairo::Context.new @surface
 		@tiles.each do |tile|
 			tile_offset = (tile.coords - @bounds.min) * TILE_SIZE
@@ -89,14 +91,15 @@ class Layer
 
 		cairo = args[:target]
 		
-		#size = args[:target].allocation
-		#cairo = args[:target].window.create_cairo_context
-		#tile_size = args[:tile_size]
-
-		#ap cairo.methods
+		cairo.set_operator Cairo::OPERATOR_OVER
 		cairo.set_source surface, args[:offset].x + @offset.x, args[:offset].y + @offset.y
-		#cairo.set_source_pixbuf @pixbuf, args[:offset].x, args[:offset].y
 		cairo.paint args[:alpha]
+
+		if args[:desaturate]
+			cairo.set_source_rgba 0, 0, 0, args[:desaturate]
+			cairo.set_operator Cairo::OPERATOR_HSL_SATURATION
+			cairo.mask Cairo::SurfacePattern.new cairo.target
+		end
 
 		#TODO grid?
 		#TODO show_source?
@@ -134,6 +137,20 @@ class Layer
 				#cairo.stroke
 			#end
 		#end
+	end
+
+	def merge source, offset
+		source.tiles.each do |tile|
+			tile.coords += offset
+			tile.current = true
+			tile.layer = @number
+			tile.save
+
+			oldtile = tilemap[tile.coords.to_s]
+			oldtile.update current: false if oldtile
+		end
+
+		retile source.tiles
 	end
 
 

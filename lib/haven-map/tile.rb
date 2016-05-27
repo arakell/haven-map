@@ -15,17 +15,17 @@ class Tile
 	property :layer, Integer, default: 0
 	property :date, DateTime
 	property :current, Boolean, default: true
-	property :filename, String
+	property :filename, String, length: 256
 
 	belongs_to :source, required: false
 
 	def initialize args
 		super args
 
-		/^tile_(?<x>[0-9-]*)_(?<y>[0-9-]*)\.png$/ =~ args[:filename].basename
-		@coords = Coords::new(x,y)
-
-		@pixbuf = {}
+		if args[:filename]
+			/^tile_(?<x>[0-9-]*)_(?<y>[0-9-]*)\.png$/ =~ args[:filename].basename
+			self.coords = Coords.new x, y
+		end
 	end
 
 	def pixbuf

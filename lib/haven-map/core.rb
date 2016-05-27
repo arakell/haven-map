@@ -67,6 +67,7 @@ class Core
 		tiles = (0..5).map do |layer|
 			Tile.all current: true, layer: layer
 		end
+
 		@map = HavenMap::Map.new tiles: tiles
 		@merger = HavenMap::Merger.new map: @map, path: @source
 	end
@@ -80,14 +81,13 @@ class Core
 		uifile = HavenMap::resource 'haven-map.ui'
 		@builder.add_from_file uifile
 
-		@mapview = @builder.get_object 'mapview'
 
 		@window = @builder.get_object 'main-window'
 
 
 
 		@builder.connect_signals do |handler|
-			if handler.match /\./ then
+			if handler.match(/\./) then
 				(receiver, handler) = handler.split(/\./)
 				instance_variable_get("@#{receiver}").method handler
 			else
@@ -97,8 +97,12 @@ class Core
 
 
 
-		@map.widget = @mapview
-		@merger.mergebar = @builder.get_object('mergebar')
+		@map.widget = @builder.get_object 'mapview'
+		@map.layer_buttons = (0..5).map{|l| @builder.get_object "layer#{l}"}
+
+		@merger.mergebar = @builder.get_object 'mergebar'
+		@merger.count = @builder.get_object 'merge-count'
+		@merger.backlog_count = @builder.get_object 'merge-backlog'
 
 
 

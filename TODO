@@ -7,10 +7,11 @@ OLD TODO (from core.rb)
 - multiple map dirs
 
 NEW TODO:
-- map generation buffers, then only paint them onto the map
-- store tiles (with paths and date) in a db and read only those from disk
 - initial view offset
 - initial tile offset (defaults to view offset)
-- cave layer(s)
 
 - per-tile drawing (extra zoom)
+
+optimizations:
+- message when loading dirs on merge (threaded)
+- message when generating maps

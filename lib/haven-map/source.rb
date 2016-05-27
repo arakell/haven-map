@@ -35,13 +35,11 @@ class Source
 	def read_tiles basedir
 		return if status != :new
 
-		@tiles = Dir.entries(basedir + path).
-			select{|f| f[0] != '.' }.
-			map do |f|
-				Tile.new filename: basedir + path + f,
-					date: date,
-					source: self
-			end
+		Dir.entries(basedir + path).
+			select{ |f| f[0] != '.' }.
+			#map { |f| Tile.new filename: basedir + path + f, date: date, source: self }.
+			map { |f| Tile.new filename: basedir + path + f, date: date }.
+			each { |t| self.tiles.push t }
 
 		#update status: :unmerged
 	end

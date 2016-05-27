@@ -14,7 +14,7 @@ class Map
 
 		#displayed layer
 		@layer = 0
-		@sublayers = false
+		@sublayers = true
 
 		@offset = Coords.new
 		@overlay_offset = Coords.new
@@ -27,8 +27,8 @@ class Map
 	end
 
 	def build_layers
-		@layers = @tiles.to_a.map do |tiles|
-			HavenMap::Layer.new tiles: tiles
+		@layers = @tiles.to_a.each_with_index.map do |tiles, index|
+			HavenMap::Layer.new tiles: tiles, number: index
 		end
 	end
 
@@ -36,15 +36,20 @@ class Map
 	def merge type, layer, &block
 		@layer = 0 if type == :surface and @layer != 0
 		@layer = 1 if type == :cave and @layer == 0
+		layer_update
 
 		zoom_normal
 
 		@overlay_cb = block
-		puts @overlay_cb
 		@overlay_offset = Coords.new
 		@overlay = layer
 
 		redraw
+	end
+
+	def unmerge
+		@overlay_cb = nil
+		@overlay = nil
 	end
 
 
@@ -69,6 +74,21 @@ class Map
 			redraw
 		end
 		@drag = nil
+	end
+
+	def layer_change from, to
+		return if to.value == @layer
+		@layer = to.value
+		redraw
+	end
+
+	def layer_buttons= buttons
+		@layer_buttons = buttons
+		layer_update
+	end
+
+	def layer_update
+		@layer_buttons[@layer].active = true
 	end
 
 	def scroll widget, event
@@ -152,16 +172,28 @@ class Map
 
 		cairo.stroke
 
-		if @sublayers
+		if @overlay
+			if @layer > 0
+				@layers[@layer - 1].draw :target => cairo,
+					offset: @offset + center,
+					alpha: 0.2,
+					desaturate: 0.8
+			end
+			@layers[@layer].draw :target => cairo,
+				offset: @offset + center,
+				desaturate: 0.8
+		elsif @sublayers
 			@layers[0].draw :target => cairo,
-			:offset => @offset + center
+				offset: @offset + center
 
-			(1..@layer).draw :target => cairo,
-				:offset => @offset + center,
-				:alpha => 0.8
+			(1..@layer).each do |layer|
+				@layers[layer].draw :target => cairo,
+					offset: @offset + center,
+					alpha: 0.8
+			end
 		else
 			@layers[@layer].draw :target => cairo,
-			:offset => @offset + center
+				offset: @offset + center
 		end
 
 		#@base.draw :target => @widget,

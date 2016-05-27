@@ -6,12 +6,13 @@ require 'set'
 module HavenMap
 
 class Merger
-	attr_writer :map, :mergebar
+	attr_writer :map, :mergebar, :count, :backlog_count, :backlog_buttons
 
 	def initialize args = {}
 		@map = args[:map]
 		@basedir = Pathname.new(args[:path])
 		@active = false
+		@backlog = []
 	end
 
 	def read_source_dir dir, sourcemap
@@ -25,24 +26,27 @@ class Merger
 		sources = Source.all
 		sourcemap = sources.map { |s| s.path }.to_set
 
-		read_source_dir('map', sourcemap).each do |dir|
-			source = Source.new
-			source.path = "map/#{dir}"
-			source.type = :surface
-			source.date = DateTime.parse dir
+		Source.transaction do
 
-			sources.push source
-			source.save
-		end
+			read_source_dir('map', sourcemap).each do |dir|
+				source = Source.new
+				source.path = "map/#{dir}"
+				source.type = :surface
+				source.date = DateTime.parse dir
 
-		read_source_dir('cave', sourcemap).each do |dir|
-			source = Source.new
-			source.path = "cave/#{dir}"
-			source.type = :cave
-			source.date = DateTime.parse dir
+				sources.push source
+				source.save
+			end
 
-			sources.push source
-			source.save
+			read_source_dir('cave', sourcemap).each do |dir|
+				source = Source.new
+				source.path = "cave/#{dir}"
+				source.type = :cave
+				source.date = DateTime.parse dir
+
+				sources.push source
+				source.save
+			end
 		end
 
 		@sources = sources.sorted.unmerged
@@ -70,38 +74,79 @@ class Merger
 	def stop
 		return if !@active
 
+		@map.unmerge
+
 		@mergebar.hide
 		@active = false
+		@backlog = []
 	end
 
 	def merge
 		return if !@source
 
 		layer = @map.layer
-		oldtiles = @map.layers[layer].tilemap
-		
-		@source.tiles.each do |tile|
-			target = tile.coords + @merge_offset
-			oldtile = oldtiles[tile.coords]
-			oldtile.update current: false if oldtile
-			tile.attributes coords: target, current: true, layer: layer
-			ap tile
-			tile.save
-			#puts "would merge #{tile.coords} to #{target}"
+
+		Tile.transaction do
+			@map.layers[layer].merge @source, @merge_offset
+			@source.update status: :merged
+		end
+		self.next
+	end
+
+	def merge_backlog
+		return if @backlog.empty?
+
+		Tile.transaction do
+			@backlog.each do |log|
+				@map.layers[log[:layer]].merge log[:source], log[:offset]
+				log[:source].update status: :merged
+			end
 		end
 
-		@map.layers[layer].retile @source.tiles
+		@backlog = []
+		@backlog_count.label = '0'
+	end
 
-		#@source.update status: :merged
+	def skip
+		@backlog.push({
+			layer: @map.layer,
+			offset: @merge_offset,
+			source: @source
+		})
 		self.next
+	end
+
+	def previous
+		return if @backlog.empty?
+
+		@sources.unshift @source
+		log = @backlog.pop
+
+		@source = log[:source]
+		@merge_offset = log[:offset]
+
+		@count.label = @sources.length.to_s
+		@backlog_count.label = @backlog.length.to_s
+
+		layer = HavenMap::Layer.new tiles: @source.tiles
+
+		@map.merge @source.type, layer do |offset|
+			@merge_offset = offset
+		end
 	end
 
 	def next
 		@source = @sources.shift
 		return stop if !@source
 
+		@count.label = @sources.length.to_s
+		@backlog_count.label = @backlog.length.to_s
+
 		@source.read_tiles @basedir
-		ap @source.tiles
+		if @source.tiles.length < 9
+			return discard
+		end
+
 		layer = HavenMap::Layer.new tiles: @source.tiles
 
 		@merge_offset = Coords.new
@@ -112,6 +157,8 @@ class Merger
 
 	def discard
 		return if !@source
+		puts "source: #{@source}"
+		@source.reload
 		@source.update status: :discarded
 		self.next
 	end

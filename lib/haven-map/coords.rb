@@ -5,31 +5,22 @@ require 'data_mapper'
 module DataMapper
 	class Property
 		class Coords < String
-
 			length 13
 
 			def custom?
 				true
 			end
 
-			def primitive?(value)
-				value.kind_of?(HavenMap::Coords)
+			def load value
+				HavenMap::Coords.parse value
 			end
 
-			def valid?(value, negated = false)
-				super || primitive?(value) || value.kind_of?(::String)
-			end
-
-			def load(value)
-				HavenMap::Coords.parse(value)
-			end
-
-			def dump(value)
+			def dump value
 				value.to_s unless value.nil?
 			end
 
-			def typecast_to_primitive(value)
-				load(value)
+			def typecast_to_primitive value
+				load value
 			end
 
 		end
@@ -116,7 +107,9 @@ class Coords
 	end
 
 	def self.parse value
-		(@x, @y) = value.split(/,/)
+		return value if value.kind_of? Coords
+		(x, y) = value.split(/,/)
+		Coords.new x, y
 	end
 end # class Coords
 
