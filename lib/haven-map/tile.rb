@@ -39,6 +39,10 @@ class Tile
 		@surface ||= Cairo::ImageSurface.from_png @filename.to_s
 	end
 
+	def to_s
+		return "#{coords}|#{layer} | #{date}"
+	end
+
 	def self.current
 		all current: true
 	end

@@ -84,6 +84,18 @@ class Coords
 		Coords.new((@x.to_f / b).round.to_i, (@y.to_f / b).round.to_i)
 	end
 
+	def round
+		Coords.new @x.round.to_i, @y.round.to_i
+	end
+
+	def ceil
+		Coords.new @x.ceil, @y.ceil
+	end
+
+	def floor
+		Coords.new @x.floor, @y.floor
+	end
+
 	def min b
 		Coords.new([@x, b.x].min, [@y, b.y].min)
 	end

@@ -123,6 +123,13 @@
         <signal name="toggled" handler="toggle_grid" swapped="no"/>
       </object>
     </child>
+    <child>
+      <object class="GtkAction" id="select-source">
+        <property name="label" translatable="yes">Select Source</property>
+        <property name="short_label" translatable="yes">Source</property>
+        <signal name="activate" handler="map.select_source" swapped="no"/>
+      </object>
+    </child>
   </object>
   <object class="GtkFileChooserDialog" id="filechooserdialog1">
     <property name="can_focus">False</property>
@@ -266,11 +273,45 @@
         <signal name="activate" handler="merger.merge_backlog" swapped="no"/>
       </object>
     </child>
+    <child>
+      <object class="GtkAction" id="merger-cache">
+        <property name="stock_id">gtk-go-forward</property>
+        <signal name="activate" handler="merger.cache" swapped="no"/>
+      </object>
+    </child>
+  </object>
+  <object class="GtkActionGroup" id="source-actions">
+    <child>
+      <object class="GtkAction" id="source-close">
+        <property name="label" translatable="yes">Close source mode</property>
+        <property name="short_label" translatable="yes">Close</property>
+        <property name="stock_id">gtk-close</property>
+        <signal name="activate" handler="map.source_close" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="source-revert">
+        <property name="label" translatable="yes">Revert to unmerged state</property>
+        <property name="short_label" translatable="yes">Revert</property>
+        <property name="stock_id">gtk-undo</property>
+        <signal name="activate" handler="map.source_revert" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="source-discard">
+        <property name="label" translatable="yes">Discard source</property>
+        <property name="short_label" translatable="yes">Discard</property>
+        <property name="stock_id">gtk-delete</property>
+        <signal name="activate" handler="map.source_discard" swapped="no"/>
+      </object>
+    </child>
   </object>
   <object class="GtkWindow" id="main-window">
     <property name="can_focus">False</property>
+    <property name="events">GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
     <property name="icon">map.png</property>
     <signal name="destroy" handler="quit" swapped="no"/>
+    <signal name="key-press-event" handler="map.key_press" swapped="no"/>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -453,6 +494,16 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="action_name">Merge</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem7">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">select-source</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -729,6 +780,59 @@
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
                 <child>
+                  <object class="GtkToolbar" id="sourcebar">
+                    <property name="can_focus">False</property>
+                    <property name="toolbar_style">both-horiz</property>
+                    <child>
+                      <object class="GtkToolButton" id="toolbutton30">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">source-close</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="is_important">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkToolButton" id="toolbutton31">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">source-revert</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="is_important">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkToolButton" id="toolbutton32">
+                        <property name="use_action_appearance">True</property>
+                        <property name="related_action">source-discard</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="is_important">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkLabel" id="map-title">
                     <property name="can_focus">False</property>
                     <property name="label" translatable="yes">label</property>
@@ -736,7 +840,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -749,10 +853,11 @@
                         <property name="height_request">300</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
                         <signal name="button-press-event" handler="map.button_press" swapped="no"/>
                         <signal name="button-release-event" handler="map.button_release" swapped="no"/>
                         <signal name="draw" handler="map.draw" swapped="no"/>
+                        <signal name="leave-notify-event" handler="map.motion_out" swapped="no"/>
                         <signal name="motion-notify-event" handler="map.motion" swapped="no"/>
                         <signal name="scroll-event" handler="map.scroll" swapped="no"/>
                       </object>
@@ -761,7 +866,7 @@
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </object>
@@ -872,6 +977,20 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="homogeneous">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbutton29">
+                    <property name="use_action_appearance">True</property>
+                    <property name="related_action">merger-cache</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">toolbutton29</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
                   </packing>
                 </child>
                 <child>

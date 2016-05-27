@@ -7,10 +7,23 @@ OLD TODO (from core.rb)
 - multiple map dirs
 
 NEW TODO:
-- initial view offset
+- initial view offset (?)
 - initial tile offset (defaults to view offset)
 
 - per-tile drawing (extra zoom)
+
+- source management
+- tile normalization button
+
+- "teleport overlay" in merge mode
+ 
+
+- split map into:
+  - MapUI (or Map::UI)
+  - MapCommons (or Map::Commons)
+  - different handlers for various modes
+    - for example tile select mode should have a block to decide what will
+      happen after the tile is selected
 
 optimizations:
 - message when loading dirs on merge (threaded)

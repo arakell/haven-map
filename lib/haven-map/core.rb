@@ -99,6 +99,7 @@ class Core
 
 		@map.widget = @builder.get_object 'mapview'
 		@map.layer_buttons = (0..5).map{|l| @builder.get_object "layer#{l}"}
+		@map.source_toolbar = @builder.get_object 'sourcebar'
 
 		@merger.mergebar = @builder.get_object 'mergebar'
 		@merger.count = @builder.get_object 'merge-count'

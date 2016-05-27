@@ -4,13 +4,28 @@ require 'haven-map/coords'
 module HavenMap
 
 class Map
-	attr_writer :widget
+	attr_writer :widget, :source_toolbar
 	attr_reader :overlay_position, :layers, :layer
 
 	def initialize opts = {}
+		# modes
+		#   :full    - draw a compound map with higher layers underneath
+		#   :layer   - draw a single layer
+		#   :overlay - draw a merging overlay
+		#   :source  - draw from a single source
+		#   :select  - select a single tile
+		@basemode = :full
+		@mode = :full
+
+		# select modes
+		#   :source - choose source to analyze
+		#   :home - choose home tile
+		@select = :nil
+
 		@widget = opts[:widget]
 		@tiles = opts[:tiles]
 		@overlay = nil
+		@source = nil
 
 		#displayed layer
 		@layer = 0
@@ -43,11 +58,13 @@ class Map
 		@overlay_cb = block
 		@overlay_offset = Coords.new
 		@overlay = layer
+		@mode = :overlay
 
 		redraw
 	end
 
 	def unmerge
+		@mode = @basemode
 		@overlay_cb = nil
 		@overlay = nil
 	end
@@ -55,7 +72,18 @@ class Map
 
 
 	def button_press widget, event
-		if event.button == 1 then
+		if @mode == :select
+			if event.button == 1
+				puts "selected #{@select_coords}"
+				case @select
+					when :source
+						read_source
+				end
+			elsif event.button == 3
+				@mode = @basemode
+				redraw
+			end
+		elsif event.button == 1 then
 			@drag = Coords.new event
 			@dragmode = :offset
 		elsif event.button == 3 and @overlay then
@@ -104,7 +132,18 @@ class Map
 	end
 
 	def motion widget, event
-		if @drag then
+		if @mode == :select
+			#puts "move #{Coords.new(event)}"
+			size = @widget.allocation
+
+			offset = Coords.new(size.width / 2, size.height / 2) * -1
+			offset += Coords.new(event) + Coords.new(TILE_SIZE / 2, TILE_SIZE / 2)
+			offset -= @offset
+			offset /= TILE_SIZE
+
+			@select_coords = offset
+			redraw
+		elsif @drag then
 			diff = Coords.new(event) - @drag
 			if @dragmode == :offset then
 				@offset += diff
@@ -112,6 +151,13 @@ class Map
 				@overlay_offset += diff
 			end
 			@drag.reset event
+			redraw
+		end
+	end
+
+	def motion_out widget, event
+		if @mode == :select
+			@select_coords = nil
 			redraw
 		end
 	end
@@ -156,6 +202,23 @@ class Map
 		zoom 0
 	end
 
+	def key_press widget, event
+		puts "key press: #{event.keyval} | #{event.string}"
+		case event.string
+			when '`' then
+				@layer = 0
+				layer_update
+				redraw
+			when '0'..'5' then
+				#puts "switch layer to: #{event.string.to_i}"
+				@layer = event.string.to_i
+				layer_update
+				redraw
+		end
+		#ap event.methods
+		#ap event
+	end
+
 	def draw
 		size = @widget.allocation
 		cairo = @widget.window.create_cairo_context
@@ -172,28 +235,53 @@ class Map
 
 		cairo.stroke
 
-		if @overlay
-			if @layer > 0
-				@layers[@layer - 1].draw :target => cairo,
+		case @mode
+			when :overlay
+				if @layer > 0
+					@layers[@layer - 1].draw :target => cairo,
+						offset: @offset + center,
+						alpha: 0.2,
+						desaturate: 0.8
+				end
+				@layers[@layer].draw :target => cairo,
 					offset: @offset + center,
-					alpha: 0.2,
 					desaturate: 0.8
-			end
-			@layers[@layer].draw :target => cairo,
-				offset: @offset + center,
-				desaturate: 0.8
-		elsif @sublayers
-			@layers[0].draw :target => cairo,
-				offset: @offset + center
+			when :full
+				(0..@layer-1).each do |layer|
+					@layers[layer].draw :target => cairo,
+						offset: @offset + center,
+						alpha: 0.5
+				end
 
-			(1..@layer).each do |layer|
-				@layers[layer].draw :target => cairo,
+				@layers[@layer].draw :target => cairo,
 					offset: @offset + center,
-					alpha: 0.8
-			end
-		else
-			@layers[@layer].draw :target => cairo,
-				offset: @offset + center
+					alpha: @layer == 0 ? 1 : 0.8
+				#@layers[0].draw :target => cairo,
+					#offset: @offset + center
+
+				#(1..@layer).each do |layer|
+					#@layers[layer].draw :target => cairo,
+						#offset: @offset + center,
+						#alpha: 0.8
+			when :layer
+				@layers[@layer].draw :target => cairo,
+					offset: @offset + center
+			when :source
+				@source_layer.draw :target => cairo,
+					offset: @offset + center
+			when :select
+				@layers[@layer].draw :target => cairo,
+					offset: @offset + center
+
+				if @select_coords
+					coords = @offset + center +
+						@select_coords * TILE_SIZE -
+						Coords.new(TILE_SIZE / 2, TILE_SIZE / 2)
+
+					cairo.set_source_rgba 1, 0, 0, 0.5
+					cairo.rectangle coords.x, coords.y, TILE_SIZE, TILE_SIZE
+					cairo.fill
+				end
 		end
 
 		#@base.draw :target => @widget,
@@ -235,6 +323,78 @@ class Map
 
 		#redraw
 	#end
+	
+	def resource tiles = []
+		# TODO (coords[], layer) version
+		# TODO remove tiles from layer
+		tiles.map do |tile|
+			coords = tile.coords
+			layer = tile.layer
+
+			current = Tile.current.all coords: coords, layer: layer
+			target = Tile.all coords: coords,
+				source: { status: :merged },
+				layer: layer,
+				limit: 1,
+				order: :date.desc
+
+			current.update current: false
+
+			target[0].update current: true if target[0]
+
+			target[0]
+		end
+	end
+
+	def select_source
+		@mode = :select
+		@select = :source
+		@select_coords = nil
+	end
+
+	def read_source
+		tile = @layers[@layer].tilemap[@select_coords.to_s]
+		if tile
+			@source = tile.source
+			@source_layer = HavenMap::Layer.new tiles: @source.tiles
+			@mode = :source
+			@source_toolbar.show
+		else
+			@mode = @basemode
+			@source_toolbar.hide
+		end
+	end
+	
+	def source= source
+		@source = source
+	end
+
+	def source_close
+		@mode = @basemode
+		@source_toolbar.hide
+		redraw
+	end
+
+	def source_revert
+		tiles = nil
+		Tile.transaction do
+			@source.update status: :unmerged
+			tiles = resource @source.tiles
+		end
+		@layers[@layer].retile tiles
+		source_close
+	end
+
+	def source_discard
+		tiles = nil
+		Tile.transaction do
+			@source.update status: :discarded
+			tiles = resource @source.tiles
+		end
+		@layers[@layer].retile tiles
+		source_close
+	end
+
 
 	def overlay= overlay
 		@overlay = overlay
@@ -244,9 +404,7 @@ class Map
 	end
 
 	def overlay_move dir
-		puts "before: #{@overlay_position}"
 		@overlay_position += dir
-		puts "after: #{@overlay_position}"
 		@overlay_offset = @overlay_position * @tile_size
 		redraw
 	end

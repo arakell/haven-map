@@ -33,7 +33,18 @@ class Layer
 	end
 
 	def retile tiles
-		@tiles = @tiles.concat(tiles).current
+		#puts "RETILE"
+		#ap tiles
+		if tiles.kind_of? DataMapper::Collection
+			@tiles = @tiles.concat(tiles).current
+		elsif tiles.kind_of? Array
+			tiles.each do |tile|
+				puts "retile: #{tile}"
+				@tiles.push tile if tile
+			end
+		elsif tiles.kind_of? Tile
+			@tiles.push tiles
+		end
 		@surface = nil
 		recount
 	end

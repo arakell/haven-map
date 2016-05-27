@@ -106,8 +106,12 @@ class Merger
 		@backlog = []
 		@backlog_count.label = '0'
 	end
-
+	
 	def skip
+		self.next
+	end
+
+	def cache
 		@backlog.push({
 			layer: @map.layer,
 			offset: @merge_offset,
@@ -137,6 +141,9 @@ class Merger
 
 	def next
 		@source = @sources.shift
+
+		puts "source: #{@source}"
+
 		return stop if !@source
 
 		@count.label = @sources.length.to_s
@@ -157,7 +164,6 @@ class Merger
 
 	def discard
 		return if !@source
-		puts "source: #{@source}"
 		@source.reload
 		@source.update status: :discarded
 		self.next
